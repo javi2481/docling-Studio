@@ -24,7 +24,11 @@ export function deleteDocument(id: string): Promise<unknown> {
   return apiFetch(`/api/documents/${id}`, { method: 'DELETE' })
 }
 
-export function getPreviewUrl(id: string, page = 1, dpi = 150): string {
+/** Rasterisation density of `/preview`. Also the basis the stacked preview
+ * uses to reserve a page's box before its image decodes (#336). */
+export const PREVIEW_DPI = 150
+
+export function getPreviewUrl(id: string, page = 1, dpi = PREVIEW_DPI): string {
   return `/api/documents/${id}/preview?page=${page}&dpi=${dpi}`
 }
 

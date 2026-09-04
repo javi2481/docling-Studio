@@ -45,9 +45,50 @@ export function centeredScrollPosition(
       0,
       state.scrollLeft + rect.x - viewport.left + rect.w / 2 - state.clientWidth / 2,
     ),
-    top: Math.max(
-      0,
-      state.scrollTop + rect.y - viewport.top + rect.h / 2 - state.clientHeight / 2,
-    ),
+    top: Math.max(0, state.scrollTop + rect.y - viewport.top + rect.h / 2 - state.clientHeight / 2),
   }
+}
+
+/** PDF page geometry is expressed in points; rasters are requested in DPI. */
+const POINTS_PER_INCH = 72
+
+/**
+ * Displayed geometry of a page card, derived from the page's own point
+ * dimensions instead of a decoded raster.
+ *
+ * The stacked preview only mounts the `<img>` of pages inside the render
+ * window, so without this a card off-window collapses to its header and
+ * re-inflates when its image decodes. That layout shift is what made the
+ * preview flicker and what invalidated every scroll target computed while it
+ * was in flight (#336). Reserving the box up front removes both.
+ *
+ * `maxWidth` reproduces the natural width of the raster (`page.width` points
+ * at `dpi`), so a page smaller than the column keeps rendering at its own
+ * size rather than being upscaled.
+ *
+ * Returns `null` for a degenerate page — the caller then falls back to
+ * sizing the card from the image, as before.
+ */
+export function pageFrameGeometry(
+  page: { width: number; height: number },
+  dpi: number,
+): { aspectRatio: string; maxWidth: string } | null {
+  if (page.width <= 0 || page.height <= 0 || dpi <= 0) return null
+  return {
+    aspectRatio: `${page.width} / ${page.height}`,
+    maxWidth: `${Math.round((page.width / POINTS_PER_INCH) * dpi)}px`,
+  }
+}
+
+/**
+ * Scroll offset that brings a page card to the top of the stage viewport.
+ * Viewport-relative inputs, scroll-space output — same convention as
+ * `centeredScrollPosition`.
+ */
+export function pageTopScrollPosition(
+  scrollTop: number,
+  viewportTop: number,
+  cardTop: number,
+): number {
+  return Math.max(0, scrollTop + cardTop - viewportTop)
 }
