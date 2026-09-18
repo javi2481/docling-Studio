@@ -21,14 +21,19 @@ describe('router', () => {
       { path: '/docs/abc', name: ROUTES.DOC_WORKSPACE },
       { path: '/analyses', name: ROUTES.ANALYSES },
       { path: '/analyses/abc', name: ROUTES.ANALYSIS_DETAIL },
-      { path: '/runs', name: ROUTES.RUNS },
-      { path: '/runs/run-42', name: ROUTES.RUN_DETAIL },
+      { path: '/ingest', name: ROUTES.STORES_LIST },
+      { path: '/ingest/new', name: ROUTES.STORE_CREATE },
     ]
     for (const c of cases) {
       const resolved = router.resolve(c.path)
       expect(resolved.name, `route ${c.path}`).toBe(c.name)
       expect(resolved.matched.length, `route ${c.path} has a component`).toBeGreaterThan(0)
     }
+  })
+
+  it('aliases /runs to Analyses for the teaching surface', () => {
+    const router = buildRouter()
+    expect(router.resolve('/runs').matched[0]?.redirect).toEqual({ name: ROUTES.ANALYSES })
   })
 
   it('keeps legacy routes functional', () => {

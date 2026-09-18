@@ -21,6 +21,7 @@ const messages: Messages = {
     'nav.documents': 'Documents',
     'nav.history': 'Historique',
     'nav.search': 'Recherche',
+    'nav.stores': 'Stores',
     // #303 — Reasoning trace v2 (Parse-view timeline + Ask panel).
     'trace.title': 'Raisonnement',
     'trace.running': 'en cours…',
@@ -385,6 +386,8 @@ const messages: Messages = {
     // Doc workspace (#216, #218 \u2014 switcher refactored in #263, modes renamed
     // in #264, Compare slot replaced by Ingest in #225)
     'workspace.tabs.parse': 'Parse',
+    'workspace.tabs.chunk': 'Chunk',
+    'workspace.tabs.ingest': 'Ingest',
     'workspace.backToLibrary': 'Retour \u00e0 la biblioth\u00e8que',
     'workspace.modeDisabled': 'Mode d\u00e9sactiv\u00e9 pour ce d\u00e9ploiement',
 
@@ -655,6 +658,7 @@ const messages: Messages = {
     'nav.documents': 'Documents',
     'nav.history': 'History',
     'nav.search': 'Search',
+    'nav.stores': 'Stores',
     // #303 — Reasoning trace v2 (Parse-view timeline + Ask panel).
     'trace.title': 'Reasoning',
     'trace.running': 'running…',
@@ -1002,6 +1006,8 @@ const messages: Messages = {
     // Doc workspace (#216, #218 — switcher refactored in #263, modes renamed
     // in #264, Compare slot replaced by Ingest in #225)
     'workspace.tabs.parse': 'Parse',
+    'workspace.tabs.chunk': 'Chunk',
+    'workspace.tabs.ingest': 'Ingest',
     'workspace.backToLibrary': 'Back to library',
     'workspace.modeDisabled': 'Mode disabled for this deployment',
 

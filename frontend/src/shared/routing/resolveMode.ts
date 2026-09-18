@@ -11,9 +11,10 @@ import { type DocMode } from './modes'
  *   - If no mode is enabled, return `null` (the router redirects to
  *     the docs library with a flash message).
  *
- * Parse is the only workspace mode.
+ * Priority: `parse` first (extraction is the natural landing for a
+ * freshly parsed doc), then `chunk`, then `ingest`.
  */
-export const MODE_PRIORITY: readonly DocMode[] = ['parse'] as const
+export const MODE_PRIORITY: readonly DocMode[] = ['parse', 'chunk', 'ingest'] as const
 
 export function resolveMode(
   requested: DocMode | undefined,

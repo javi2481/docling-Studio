@@ -86,7 +86,10 @@
           <span class="preview-page-label">Page {{ page.page_number }}</span>
           <span class="preview-page-meta">{{ Math.round(page.width) }} x {{ Math.round(page.height) }}</span>
         </header>
-        <div class="preview-frame">
+        <div
+          class="preview-frame"
+          :style="pageFrameStyle(page)"
+        >
           <img
             v-if="shouldRenderPage(page.page_number)"
             :src="getPreviewUrl(documentId, page.page_number)"
@@ -96,6 +99,11 @@
             decoding="async"
             :ref="(el) => registerImage(page.page_number, el as HTMLImageElement | null)"
             @load="onImageLoad(page.page_number)"
+          />
+          <div
+            v-else
+            class="preview-placeholder"
+            aria-hidden="true"
           />
           <BboxCanvas
             v-if="loadedImages[page.page_number]"
@@ -162,13 +170,18 @@ const loadedImages = reactive<Record<number, HTMLImageElement | null>>({})
 const pageCardRefs = reactive<Record<number, HTMLElement | null>>({})
 const visiblePage = ref<number | null>(null)
 const renderedPageNumbers = reactive(new Set<number>())
-const viewMode = ref<'page' | 'scroll'>('scroll')
+/** Single-page mode is the stable default; scroll mode used to fight the paginator. */
+const viewMode = ref<'page' | 'scroll'>('page')
 const pageInput = ref('1')
 const pageInputFocused = ref(false)
+/** While true, ignore IntersectionObserver page sync (paginator / programmatic jumps). */
+const syncLocked = ref(false)
 
 let pageObserver: IntersectionObserver | null = null
 let renderObserver: IntersectionObserver | null = null
+let syncUnlockTimer: ReturnType<typeof setTimeout> | null = null
 const visibilityRatios = new Map<number, number>()
+const RENDER_WINDOW = 2
 
 const totalPages = computed(() => props.pages.length)
 const pageInputSize = computed(() => pageInputWidthCh(totalPages.value))
@@ -221,17 +234,45 @@ function onClickElement(el: PageElement, pageNumber: number): void {
   emit('clickElement', el, pageNumber)
 }
 
+function pageFrameStyle(page: Page): Record<string, string> | undefined {
+  if (page.width > 0 && page.height > 0) {
+    return { aspectRatio: `${page.width} / ${page.height}` }
+  }
+  return undefined
+}
+
 function shouldRenderPage(pageNumber: number): boolean {
-  return viewMode.value === 'page' || renderedPageNumbers.has(pageNumber)
+  if (viewMode.value === 'page') return true
+  if (renderedPageNumbers.has(pageNumber)) return true
+  // Always keep a window around the selected page so height never collapses mid-jump.
+  return Math.abs(pageNumber - props.currentPage) <= RENDER_WINDOW
+}
+
+function lockPageSync(ms = 450): void {
+  syncLocked.value = true
+  if (syncUnlockTimer) clearTimeout(syncUnlockTimer)
+  syncUnlockTimer = setTimeout(() => {
+    syncLocked.value = false
+    syncUnlockTimer = null
+  }, ms)
 }
 
 function onPageChange(page: number): void {
   if (page < 1 || page > totalPages.value) return
+  visiblePage.value = page
+  lockPageSync()
+  keepRenderWindow(page)
   emit('update:currentPage', page)
-  if (viewMode.value === 'scroll') scrollToPage(page)
+  if (viewMode.value === 'scroll') scrollToPage(page, 'auto')
 }
 
-function scrollToPage(pageNumber: number): void {
+function keepRenderWindow(center: number): void {
+  for (let p = center - RENDER_WINDOW; p <= center + RENDER_WINDOW; p++) {
+    if (p >= 1 && p <= totalPages.value) renderedPageNumbers.add(p)
+  }
+}
+
+function scrollToPage(pageNumber: number, behavior: ScrollBehavior = 'auto'): void {
   const card = pageCardRefs[pageNumber]
   const stage = stageRef.value
   if (!card || !stage) return
@@ -244,9 +285,10 @@ function scrollToPage(pageNumber: number): void {
     cardRect.top >= stageRect.top && cardRect.bottom <= stageRect.bottom
 
   if (isVisible) return
+  lockPageSync(behavior === 'smooth' ? 600 : 350)
   stage.scrollTo({
     top: Math.max(0, stage.scrollTop + cardRect.top - stageRect.top),
-    behavior: 'smooth',
+    behavior,
   })
 }
 
@@ -264,7 +306,7 @@ function setupObserver(): void {
   visibilityRatios.clear()
   const stage = stageRef.value
   if (!stage) return
-  renderedPageNumbers.add(props.currentPage)
+  keepRenderWindow(props.currentPage)
 
   pageObserver = new IntersectionObserver(
     (entries) => {
@@ -273,6 +315,9 @@ function setupObserver(): void {
         if (!page) continue
         visibilityRatios.set(page, entry.isIntersecting ? entry.intersectionRatio : 0)
       }
+      // Paginator / programmatic scroll owns currentPage while locked —
+      // otherwise intermediate pages steal the selection mid-jump.
+      if (syncLocked.value) return
       const bestPage = mostVisiblePage(visibilityRatios)
       if (!bestPage || bestPage === visiblePage.value) return
       visiblePage.value = bestPage
@@ -306,6 +351,12 @@ function setupObserver(): void {
 
 function updateRenderWindow(pageNumber: number, isIntersecting: boolean): void {
   if (isIntersecting) {
+    renderedPageNumbers.add(pageNumber)
+    return
+  }
+  // Keep a buffer around the active page so unloading never collapses
+  // scroll height (that was the main "jumps anywhere" bug with 85 pages).
+  if (Math.abs(pageNumber - props.currentPage) <= RENDER_WINDOW) {
     renderedPageNumbers.add(pageNumber)
     return
   }
@@ -376,8 +427,11 @@ watch(
   () => props.currentPage,
   (page) => {
     if (!pageInputFocused.value) resetPageInput()
-    if (!page || viewMode.value !== 'scroll' || page === visiblePage.value) return
-    nextTick(() => scrollToPage(page))
+    if (!page) return
+    keepRenderWindow(page)
+    if (viewMode.value !== 'scroll' || page === visiblePage.value) return
+    visiblePage.value = page
+    nextTick(() => scrollToPage(page, 'auto'))
   },
   { immediate: true },
 )
@@ -430,6 +484,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   pageObserver?.disconnect()
   renderObserver?.disconnect()
+  if (syncUnlockTimer) clearTimeout(syncUnlockTimer)
 })
 </script>
 
@@ -604,7 +659,7 @@ onBeforeUnmount(() => {
 .preview-frame {
   position: relative;
   display: block;
-  width: fit-content;
+  width: min(100%, 900px);
   max-width: 100%;
   margin: 0 auto;
   border: 1px solid var(--border);
@@ -615,7 +670,14 @@ onBeforeUnmount(() => {
 
 .preview-image {
   display: block;
-  max-width: 100%;
+  width: 100%;
   height: auto;
+}
+
+.preview-placeholder {
+  width: 100%;
+  height: 100%;
+  min-height: 120px;
+  background: var(--bg-elevated);
 }
 </style>

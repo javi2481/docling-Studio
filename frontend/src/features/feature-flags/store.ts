@@ -193,15 +193,18 @@ export const useFeatureFlagStore = defineStore('feature-flags', () => {
   /**
    * Workspace mode-flag map consumed by `resolveMode` (#210 / #263 / #264 / #225).
    *
-   * `inspect_mode_enabled` gates Parse.
+   * `inspect_mode_enabled` gates Parse, `linked_mode_enabled` gates Chunk.
+   * Ingest is always navigable — the tab itself explains when push is offline.
    *
    * `ingestionAvailable` from `/api/health` is still exposed via the
-   * `ingestion` registry entry below — components that drive the
-   * actual push action consult that flag, not `modeFlags()`.
+   * `ingestion` registry entry — components that drive the actual push
+   * action consult that flag, not `modeFlags()`.
    */
-  function modeFlags(): { parse: boolean } {
+  function modeFlags(): { parse: boolean; chunk: boolean; ingest: boolean } {
     return {
       parse: inspectModeEnabled.value,
+      chunk: linkedModeEnabled.value,
+      ingest: true,
     }
   }
 

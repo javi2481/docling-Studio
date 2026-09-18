@@ -92,15 +92,57 @@ export const routes: RouteRecordRaw[] = [
     }),
   },
   {
+    path: '/ingest',
+    name: ROUTES.STORES_LIST,
+    component: () => import('../../pages/StoresListPage.vue'),
+  },
+  {
+    path: '/ingest/new',
+    name: ROUTES.STORE_CREATE,
+    component: () => import('../../pages/StoreCreatePage.vue'),
+  },
+  {
+    path: '/ingest/:store',
+    name: ROUTES.STORE_DETAIL,
+    component: () => import('../../pages/StoreDetailPage.vue'),
+    props: true,
+  },
+  {
+    path: '/ingest/:store/edit',
+    name: ROUTES.STORE_EDIT,
+    component: () => import('../../pages/StoreEditPage.vue'),
+    props: true,
+  },
+  {
+    path: '/ingest/:store/query',
+    name: ROUTES.STORE_QUERY,
+    component: () => import('../../pages/StoreQueryPage.vue'),
+    props: true,
+  },
+  // Legacy `/index/*` → `/ingest/*`
+  { path: '/index', redirect: '/ingest' },
+  { path: '/index/new', redirect: '/ingest/new' },
+  {
+    path: '/index/:store',
+    redirect: (to) => `/ingest/${to.params.store}`,
+  },
+  {
+    path: '/index/:store/edit',
+    redirect: (to) => `/ingest/${to.params.store}/edit`,
+  },
+  {
+    path: '/index/:store/query',
+    redirect: (to) => `/ingest/${to.params.store}/query`,
+  },
+  {
     path: '/runs',
     name: ROUTES.RUNS,
-    component: () => import('../../pages/RunsPage.vue'),
+    redirect: { name: ROUTES.ANALYSES },
   },
   {
     path: '/runs/:id',
     name: ROUTES.RUN_DETAIL,
-    component: () => import('../../pages/RunDetailPage.vue'),
-    props: true,
+    redirect: (to) => ({ name: ROUTES.ANALYSIS_DETAIL, params: { id: to.params.id } }),
   },
 
   // ---------------------------------------------------------------------------

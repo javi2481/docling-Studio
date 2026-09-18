@@ -149,6 +149,7 @@ type NavItem = {
 }
 
 const studioModeOn = computed(() => featureStore.isEnabled('studioMode'))
+const ragPipelineOn = computed(() => featureStore.isEnabled('ragPipeline'))
 
 const items = computed<NavItem[]>(() => {
   const base: NavItem[] = [
@@ -176,6 +177,25 @@ const items = computed<NavItem[]>(() => {
     },
   ]
 
+  if (ragPipelineOn.value) {
+    base.push(
+      {
+        key: 'search',
+        to: { name: ROUTES.SEARCH },
+        labelKey: 'nav.search',
+        icon: SearchIcon,
+        matchPrefixes: ['/search'],
+      },
+      {
+        key: 'stores',
+        to: { name: ROUTES.STORES_LIST },
+        labelKey: 'nav.stores',
+        icon: RunsIcon,
+        matchPrefixes: ['/ingest'],
+      },
+    )
+  }
+
   if (studioModeOn.value) {
     base.push(
       {
@@ -199,32 +219,16 @@ const items = computed<NavItem[]>(() => {
         icon: HistoryIcon,
         matchPrefixes: ['/history'],
       },
-      {
-        key: 'search',
-        to: { name: ROUTES.SEARCH },
-        labelKey: 'nav.search',
-        icon: SearchIcon,
-        matchPrefixes: ['/search'],
-      },
     )
   }
 
-  base.push(
-    {
-      key: 'runs',
-      to: { name: ROUTES.RUNS },
-      labelKey: 'nav.runs',
-      icon: RunsIcon,
-      matchPrefixes: ['/runs'],
-    },
-    {
-      key: 'settings',
-      to: { name: ROUTES.SETTINGS },
-      labelKey: 'nav.settings',
-      icon: SettingsIcon,
-      matchPrefixes: ['/settings'],
-    },
-  )
+  base.push({
+    key: 'settings',
+    to: { name: ROUTES.SETTINGS },
+    labelKey: 'nav.settings',
+    icon: SettingsIcon,
+    matchPrefixes: ['/settings'],
+  })
 
   return base
 })

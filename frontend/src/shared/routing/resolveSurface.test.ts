@@ -18,11 +18,16 @@ describe('resolveSurface', () => {
     expect(resolveSurface(ROUTES.STUDIO, { studio: false, rag: true })).toBe(ROUTES.DOCS_LIBRARY)
     expect(resolveSurface(ROUTES.HISTORY, { studio: false, rag: true })).toBe(ROUTES.DOCS_LIBRARY)
     expect(resolveSurface(ROUTES.DOCUMENTS, { studio: false, rag: true })).toBe(ROUTES.DOCS_LIBRARY)
-    expect(resolveSurface(ROUTES.SEARCH, { studio: false, rag: true })).toBe(ROUTES.DOCS_LIBRARY)
+  })
+
+  it('keeps Search and Stores on the RAG surface', () => {
+    expect(resolveSurface(ROUTES.SEARCH, { studio: false, rag: true })).toBeNull()
+    expect(resolveSurface(ROUTES.STORES_LIST, { studio: false, rag: true })).toBeNull()
   })
 
   it('redirects rag routes to studio when rag off and studio on', () => {
     expect(resolveSurface(ROUTES.DOCS_LIBRARY, { studio: true, rag: false })).toBe(ROUTES.STUDIO)
+    expect(resolveSurface(ROUTES.SEARCH, { studio: true, rag: false })).toBe(ROUTES.STUDIO)
     expect(resolveSurface(ROUTES.RUNS, { studio: true, rag: false })).toBe(ROUTES.STUDIO)
   })
 
