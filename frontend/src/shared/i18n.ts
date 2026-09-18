@@ -1256,7 +1256,7 @@ const messages: Messages = {
 
 export function useI18n() {
   function t(key: string, params: Record<string, string | number> = {}): string {
-    let str = messages[appLocale.value]?.[key] || messages['fr'][key] || key
+    let str = messages[appLocale.value]?.[key] || messages['en'][key] || messages['fr'][key] || key
     for (const [k, v] of Object.entries(params)) {
       str = str.replaceAll(`{${k}}`, String(v))
     }

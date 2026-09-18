@@ -4,7 +4,7 @@ export function formatSize(bytes: number | null | undefined): string {
   return mb >= 1 ? `${mb.toFixed(1)} MB` : `${(bytes / 1024).toFixed(0)} KB`
 }
 
-export function formatRelativeTime(iso: string | null | undefined, locale = 'fr'): string {
+export function formatRelativeTime(iso: string | null | undefined, locale = 'en'): string {
   if (!iso) return '—'
   const diffMs = Date.now() - new Date(iso).getTime()
   const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })

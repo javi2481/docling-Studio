@@ -26,6 +26,7 @@ Thumbs.db
 .env
 .env.local
 .env.production
+.env.max
 
 # Uploads & data
 uploads/
@@ -70,3 +71,7 @@ e2e/ui/src/test/resources/demo/pace.json
 # Root-scoped so fixtures in subdirectories are unaffected.
 /*.pdf
 /package-lock.json
+
+# Local agent memory
+.engram/
+

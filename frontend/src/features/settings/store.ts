@@ -22,7 +22,7 @@ function safeSetItem(key: string, value: string): void {
 
 export const useSettingsStore = defineStore('settings', () => {
   const theme = ref<Theme>((safeGetItem(STORAGE_KEYS.theme) as Theme) || 'dark')
-  const locale = ref<Locale>((safeGetItem(STORAGE_KEYS.locale) as Locale) || 'fr')
+  const locale = ref<Locale>((safeGetItem(STORAGE_KEYS.locale) as Locale) || 'en')
 
   watch(theme, (v) => safeSetItem(STORAGE_KEYS.theme, v))
   watch(

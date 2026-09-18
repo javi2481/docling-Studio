@@ -114,6 +114,31 @@ const AnalysesIcon: Component = () =>
     }),
   ])
 
+const StudioIcon: Component = () =>
+  h('svg', { viewBox: '0 0 20 20', fill: 'currentColor' }, [
+    h('path', {
+      d: 'M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm3 4a1 1 0 011-1h5a1 1 0 110 2H8a1 1 0 01-1-1zm0 3a1 1 0 011-1h5a1 1 0 110 2H8a1 1 0 01-1-1zm0 3a1 1 0 011-1h3a1 1 0 110 2H8a1 1 0 01-1-1z',
+    }),
+  ])
+
+const SearchIcon: Component = () =>
+  h('svg', { viewBox: '0 0 20 20', fill: 'currentColor' }, [
+    h('path', {
+      'fill-rule': 'evenodd',
+      'clip-rule': 'evenodd',
+      d: 'M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z',
+    }),
+  ])
+
+const HistoryIcon: Component = () =>
+  h('svg', { viewBox: '0 0 20 20', fill: 'currentColor' }, [
+    h('path', {
+      'fill-rule': 'evenodd',
+      'clip-rule': 'evenodd',
+      d: 'M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z',
+    }),
+  ])
+
 type NavItem = {
   key: string
   to: RouteLocationRaw
@@ -123,44 +148,86 @@ type NavItem = {
   matchPrefixes: readonly string[]
 }
 
-const items: NavItem[] = [
-  {
-    key: 'home',
-    to: { name: ROUTES.HOME },
-    labelKey: 'nav.home',
-    icon: HomeIcon,
-    matchPrefixes: ['/'],
-  },
-  {
-    key: 'docs',
-    to: { name: ROUTES.DOCS_LIBRARY },
-    labelKey: 'nav.docs',
-    icon: DocsIcon,
-    primary: true,
-    matchPrefixes: ['/docs'],
-  },
-  {
-    key: 'analyses',
-    to: { name: ROUTES.ANALYSES },
-    labelKey: 'nav.analyses',
-    icon: AnalysesIcon,
-    matchPrefixes: ['/analyses'],
-  },
-  {
-    key: 'runs',
-    to: { name: ROUTES.RUNS },
-    labelKey: 'nav.runs',
-    icon: RunsIcon,
-    matchPrefixes: ['/runs'],
-  },
-  {
-    key: 'settings',
-    to: { name: ROUTES.SETTINGS },
-    labelKey: 'nav.settings',
-    icon: SettingsIcon,
-    matchPrefixes: ['/settings'],
-  },
-]
+const studioModeOn = computed(() => featureStore.isEnabled('studioMode'))
+
+const items = computed<NavItem[]>(() => {
+  const base: NavItem[] = [
+    {
+      key: 'home',
+      to: { name: ROUTES.HOME },
+      labelKey: 'nav.home',
+      icon: HomeIcon,
+      matchPrefixes: ['/'],
+    },
+    {
+      key: 'docs',
+      to: { name: ROUTES.DOCS_LIBRARY },
+      labelKey: 'nav.docs',
+      icon: DocsIcon,
+      primary: true,
+      matchPrefixes: ['/docs'],
+    },
+    {
+      key: 'analyses',
+      to: { name: ROUTES.ANALYSES },
+      labelKey: 'nav.analyses',
+      icon: AnalysesIcon,
+      matchPrefixes: ['/analyses'],
+    },
+  ]
+
+  if (studioModeOn.value) {
+    base.push(
+      {
+        key: 'studio',
+        to: { name: ROUTES.STUDIO },
+        labelKey: 'nav.studio',
+        icon: StudioIcon,
+        matchPrefixes: ['/studio'],
+      },
+      {
+        key: 'documents',
+        to: { name: ROUTES.DOCUMENTS },
+        labelKey: 'nav.documents',
+        icon: DocsIcon,
+        matchPrefixes: ['/documents'],
+      },
+      {
+        key: 'history',
+        to: { name: ROUTES.HISTORY },
+        labelKey: 'nav.history',
+        icon: HistoryIcon,
+        matchPrefixes: ['/history'],
+      },
+      {
+        key: 'search',
+        to: { name: ROUTES.SEARCH },
+        labelKey: 'nav.search',
+        icon: SearchIcon,
+        matchPrefixes: ['/search'],
+      },
+    )
+  }
+
+  base.push(
+    {
+      key: 'runs',
+      to: { name: ROUTES.RUNS },
+      labelKey: 'nav.runs',
+      icon: RunsIcon,
+      matchPrefixes: ['/runs'],
+    },
+    {
+      key: 'settings',
+      to: { name: ROUTES.SETTINGS },
+      labelKey: 'nav.settings',
+      icon: SettingsIcon,
+      matchPrefixes: ['/settings'],
+    },
+  )
+
+  return base
+})
 
 function isActive(item: NavItem): boolean {
   return matchesActive(route.path, item.matchPrefixes)
